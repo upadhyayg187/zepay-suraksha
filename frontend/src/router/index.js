@@ -3,9 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ProductsView from '../views/ProductsView.vue'
-import AboutView from '../views/AboutView.vue' // <-- Import the new page
-import ContactView from '../views/ContactView.vue' // <-- Import the new page
-
+import AboutView from '../views/AboutView.vue'
+import ContactView from '../views/ContactView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,12 +29,22 @@ const router = createRouter({
       name: 'products',
       component: ProductsView
     },
-    { // <-- Add this new route object
+    {
+      path: '/products/:slug',
+      name: 'product-detail',
+      component: () => import('../views/ProductDetailView.vue')
+    },
+    {
+      path: '/quotes', // <-- ADD THIS NEW ROUTE
+      name: 'quotes',
+      component: () => import('../views/QuotesView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       component: AboutView
     },
-     { // <-- Add this new route object
+    {
       path: '/contact',
       name: 'contact',
       component: ContactView
@@ -44,4 +53,3 @@ const router = createRouter({
 })
 
 export default router
-

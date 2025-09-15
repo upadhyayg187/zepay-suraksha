@@ -1,23 +1,26 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router'; // <-- Import useRouter
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Navigation } from 'vue3-carousel';
-
-import { 
+import {
     Car, HeartPulse, ShieldCheck, Plane, Briefcase, Building, Users, Baby, RefreshCw, HandCoins, Landmark, Umbrella,
     Shield, Globe, Clock, MessageSquareHeart, UsersRound, Library, BadgePercent, LifeBuoy, Mail, Phone,
     Award, Heart, Flag, Bike, Truck
 } from 'lucide-vue-next';
 
-// --- QUOTE FORM LOGIC (UPDATED) ---
+// --- NEW SCRIPT LOGIC ---
+const router = useRouter(); // <-- Get the router instance
+const quoteInput = ref(''); // <-- Add a ref for the input field
+
+// --- QUOTE FORM LOGIC ---
 const activeTabId = ref('Motor');
 const activeMotorSubTabId = ref('Car');
 
 const quoteTabs = ref([
-    { 
-      id: 'Motor', 
-      label: 'Motor', 
+    {
+      id: 'Motor',
+      label: 'Motor',
       icon: Car,
       subTabs: [
         { id: 'Car', label: 'Car', placeholder: 'Enter Car Number (e.g., DL01AB1234)', type: 'text' },
@@ -38,8 +41,19 @@ const activeTabData = computed(() => {
     return activeTab;
 });
 
+// --- NEW METHOD ---
+function viewQuotes() {
+  const quoteType = activeTabData.value.id || activeTabData.value.label;
+  router.push({
+    name: 'quotes',
+    query: {
+      type: quoteType,
+      input: quoteInput.value
+    }
+  });
+}
 
-// --- ALL OTHER DATA REMAINS UNCHANGED FROM YOUR FILE ---
+// --- ALL OTHER DATA REMAINS UNCHANGED ---
 const products = ref([
     { name: 'Term Life Insurance', subtext: 'Starts @ ₹499/month', icon: ShieldCheck, tag: null },
     { name: 'Health Insurance', subtext: 'Upto 25% Off', icon: HeartPulse, tag: 'Popular' },
@@ -81,7 +95,6 @@ const achievementImages = [
 
 <template>
   <div class="bg-white">
-    <!-- Hero Section -->
     <div class="relative bg-gray-50 overflow-hidden">
        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="relative py-24 lg:py-32">
@@ -97,43 +110,38 @@ const achievementImages = [
               </p>
             </div>
             <div class="relative">
-              <!-- GET A QUICK QUOTE SECTION (UPDATED) -->
               <div class="bg-white rounded-2xl shadow-2xl p-8">
                 <h2 class="text-2xl font-bold text-center text-gray-800">Get a Quick Quote</h2>
                 <div class="mt-6 grid grid-cols-4 gap-2">
-                  <button v-for="tab in quoteTabs" :key="tab.id" @click="activeTabId = tab.id" 
+                  <button v-for="tab in quoteTabs" :key="tab.id" @click="activeTabId = tab.id; quoteInput = '';"
                           :class="['group rounded-lg py-3 text-sm font-semibold flex flex-col items-center justify-center transition-all duration-200 border', activeTabId === tab.id ? 'bg-zepay-blue text-white border-zepay-blue' : 'bg-white text-gray-500 hover:bg-zepay-blue/5 hover:text-zepay-blue border-transparent']">
                     <component :is="tab.icon" class="h-6 w-6 mb-1 transition-colors" /> {{ tab.label }}
                   </button>
                 </div>
-                
+
                 <div class="mt-6">
-                    <!-- Motor Sub-tabs -->
                     <div v-if="activeTabId === 'Motor'" class="mb-4">
                         <div class="flex justify-center items-center bg-gray-100 rounded-lg p-1">
                             <button v-for="subTab in quoteTabs.find(t => t.id === 'Motor').subTabs" :key="subTab.id"
-                                    @click="activeMotorSubTabId = subTab.id"
+                                    @click="activeMotorSubTabId = subTab.id; quoteInput = '';"
                                     :class="['flex-1 text-center text-sm font-semibold py-2 rounded-md transition-colors duration-200', activeMotorSubTabId === subTab.id ? 'bg-white text-zepay-blue shadow' : 'text-gray-500 hover:text-gray-800']">
                                 {{ subTab.label }}
                             </button>
                         </div>
                     </div>
 
-                    <input :type="activeTabData.type" :placeholder="activeTabData.placeholder" class="mt-4 w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-zepay-blue focus:border-zepay-blue transition">
-                    <button class="mt-4 w-full bg-zepay-green text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-zepay-green/90 transition-all duration-300 transform hover:scale-105">
-                    View Free Quotes
-                  </button>
+                    <input v-model="quoteInput" :type="activeTabData.type" :placeholder="activeTabData.placeholder" class="mt-4 w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-zepay-blue focus:border-zepay-blue transition">
+                    <button @click="viewQuotes" class="mt-4 w-full bg-zepay-green text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-zepay-green/90 transition-all duration-300 transform hover:scale-105">
+                        View Free Quotes
+                    </button>
                 </div>
-                <!-- END GET A QUICK QUOTE SECTION -->
-
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- ALL OTHER SECTIONS ARE UNCHANGED FROM YOUR FILE -->
+
     <div class="py-16 sm:py-24 bg-white">
        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
@@ -313,4 +321,3 @@ const achievementImages = [
 
   </div>
 </template>
-

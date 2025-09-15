@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Mail, Phone, MapPin } from 'lucide-vue-next';
+import api from '@/services/api'; // Import the api service
 
 const formData = ref({
   name: '',
@@ -8,20 +9,36 @@ const formData = ref({
   subject: '',
   message: '',
 });
+const formMessage = ref('');
+const formErrors = ref({});
+const submitting = ref(false);
 
-const handleSubmit = () => {
-  // In a real application, you would handle form submission here.
-  // This could involve sending the data to your Laravel backend API.
-  console.log('Form Submitted:', formData.value);
-  alert('Thank you for your message! We will get back to you shortly.');
-  // Reset form
-  formData.value = { name: '', email: '', subject: '', message: '' };
+const handleSubmit = async () => {
+  submitting.value = true;
+  formMessage.value = '';
+  formErrors.value = {};
+
+  try {
+    const response = await api.post('/api/contact', formData.value);
+    formMessage.value = response.data.message;
+    // Reset form
+    formData.value = { name: '', email: '', subject: '', message: '' };
+  } catch (error) {
+    if (error.response && error.response.status === 422) {
+        formMessage.value = 'Please correct the errors below.';
+        formErrors.value = error.response.data.errors;
+    } else {
+        formMessage.value = 'An unexpected error occurred. Please try again later.';
+        console.error('Form submission error:', error);
+    }
+  } finally {
+      submitting.value = false;
+  }
 };
 </script>
 
 <template>
   <div class="bg-white">
-    <!-- Hero Section -->
     <div class="relative bg-zepay-blue/5 py-24 sm:py-32">
         <div class="absolute inset-0">
             <img src="https://images.unsplash.com/photo-1596524430615-b46475ddff6e?q=80&w=2070&auto=format&fit=crop" alt="Abstract background" class="w-full h-full object-cover opacity-10">
@@ -37,11 +54,9 @@ const handleSubmit = () => {
         </div>
     </div>
 
-    <!-- Contact Info and Form Section -->
     <div class="py-16 sm:py-24">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid lg:grid-cols-2 gap-16 items-start">
-                <!-- Left Column: Info & Map -->
                 <div class="space-y-12">
                     <div>
                         <h2 class="text-3xl font-bold tracking-tight text-gray-900">Get in Touch</h2>
@@ -91,41 +106,49 @@ const handleSubmit = () => {
                         </div>
                     </div>
                     <div class="rounded-2xl overflow-hidden shadow-2xl h-80">
-                         <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3549.435767556754!2d78.00551007519102!3d27.17296537648934!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397473a45c36199b%3A0x356571557161b6c7!2sSanjay%20Place!5e0!3m2!1sen!2sin!4v1726146194248!5m2!1sen!2sin" 
-                            width="100%" 
-                            height="100%" 
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy" 
+                         <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3549.400511874244!2d78.0076238150511!3d27.18229218299845!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397476add885497f%3A0x8698125134b224f8!2sRed%20Square%20Commercial%20Complex!5e0!3m2!1sen!2sin!4v1678886363654!5m2!1sen!2sin"
+                            width="100%"
+                            height="100%"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade">
                         </iframe>
                     </div>
                 </div>
 
-                <!-- Right Column: Contact Form -->
                 <div class="bg-gray-50 p-8 sm:p-12 rounded-2xl shadow-xl border border-gray-200">
                     <h2 class="text-2xl font-bold text-gray-900">Send us a Message</h2>
                     <form @submit.prevent="handleSubmit" class="mt-8 space-y-6">
                         <div>
                             <label for="name" class="font-semibold text-gray-700">Full Name</label>
-                            <input type="text" id="name" v-model="formData.name" required class="mt-2 w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-zepay-blue focus:border-zepay-blue transition">
+                            <input type="text" id="name" v-model="formData.name" required class="mt-2 w-full px-4 py-3 rounded-lg border focus:ring-2 transition" :class="formErrors.name ? 'border-red-500 ring-red-300' : 'border-gray-300 focus:ring-zepay-blue focus:border-zepay-blue'">
+                            <p v-if="formErrors.name" class="text-red-500 text-sm mt-1">{{ formErrors.name[0] }}</p>
                         </div>
                          <div>
                             <label for="email" class="font-semibold text-gray-700">Email Address</label>
-                            <input type="email" id="email" v-model="formData.email" required class="mt-2 w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-zepay-blue focus:border-zepay-blue transition">
+                            <input type="email" id="email" v-model="formData.email" required class="mt-2 w-full px-4 py-3 rounded-lg border focus:ring-2 transition" :class="formErrors.email ? 'border-red-500 ring-red-300' : 'border-gray-300 focus:ring-zepay-blue focus:border-zepay-blue'">
+                             <p v-if="formErrors.email" class="text-red-500 text-sm mt-1">{{ formErrors.email[0] }}</p>
                         </div>
                         <div>
                             <label for="subject" class="font-semibold text-gray-700">Subject</label>
-                            <input type="text" id="subject" v-model="formData.subject" required class="mt-2 w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-zepay-blue focus:border-zepay-blue transition">
+                            <input type="text" id="subject" v-model="formData.subject" required class="mt-2 w-full px-4 py-3 rounded-lg border focus:ring-2 transition" :class="formErrors.subject ? 'border-red-500 ring-red-300' : 'border-gray-300 focus:ring-zepay-blue focus:border-zepay-blue'">
+                            <p v-if="formErrors.subject" class="text-red-500 text-sm mt-1">{{ formErrors.subject[0] }}</p>
                         </div>
                         <div>
                             <label for="message" class="font-semibold text-gray-700">Message</label>
-                            <textarea id="message" v-model="formData.message" rows="5" required class="mt-2 w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-zepay-blue focus:border-zepay-blue transition"></textarea>
+                            <textarea id="message" v-model="formData.message" rows="5" required class="mt-2 w-full px-4 py-3 rounded-lg border focus:ring-2 transition" :class="formErrors.message ? 'border-red-500 ring-red-300' : 'border-gray-300 focus:ring-zepay-blue focus:border-zepay-blue'"></textarea>
+                            <p v-if="formErrors.message" class="text-red-500 text-sm mt-1">{{ formErrors.message[0] }}</p>
                         </div>
+
+                        <div v-if="formMessage" class="p-4 rounded-md" :class="formErrors.name || formErrors.email ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'">
+                           {{ formMessage }}
+                        </div>
+
                         <div>
-                            <button type="submit" class="w-full bg-zepay-blue text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-zepay-blue/90 transition-all duration-300 transform hover:scale-105">
-                                Send Message
+                            <button type="submit" :disabled="submitting" class="w-full bg-zepay-blue text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-zepay-blue/90 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {{ submitting ? 'Sending...' : 'Send Message' }}
                             </button>
                         </div>
                     </form>

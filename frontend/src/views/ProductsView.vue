@@ -1,24 +1,38 @@
 <script setup>
+import { onMounted, computed } from 'vue';
+import { RouterLink } from 'vue-router';
+import { useProductStore } from '@/stores/products';
 import { ShieldCheck, HeartPulse, Stethoscope, Car, Bike, Plane, Briefcase, Building, Users, Baby, RefreshCw, HandCoins, Landmark, Umbrella } from 'lucide-vue-next'
 
-const products = [
-    { name: 'Term Life Insurance', description: 'Protect your family\'s future.', icon: ShieldCheck },
-    { name: 'Health Insurance', description: 'Cover medical expenses.', icon: HeartPulse },
-    { name: 'Critical Illness', description: 'Lumpsum for major illnesses.', icon: Stethoscope },
-    { name: 'Car Insurance', description: 'Protection for your vehicle.', icon: Car },
-    { name: '2 Wheeler Insurance', description: 'Insure your bike or scooter.', icon: Bike },
-    { name: 'Travel Insurance', description: 'Secure your trips.', icon: Plane },
-    { name: 'Investment Plans', description: 'Grow your wealth.', icon: HandCoins },
-    { name: 'Retirement Plans', description: 'Plan for your golden years.', icon: Landmark },
-    { name: 'Child Savings Plans', description: 'Secure your child\'s future.', icon: Baby },
-    { name: 'Women\'s Term Plan', description: 'Specialized life cover.', icon: ShieldCheck },
-    { name: 'Return of Premium', description: 'Get your premiums back.', icon: RefreshCw },
-    { name: 'Guaranteed Returns', description: 'Assured investment growth.', icon: HandCoins },
-    { name: 'Group Health', description: 'Insurance for your employees.', icon: Users },
-    { name: 'Commercial Vehicle', description: 'Cover for business vehicles.', icon: Building },
-    { name: 'General Insurance', description: 'Cover for home and assets.', icon: Umbrella },
-    { name: 'Business Insurance', description: 'Protect your company.', icon: Briefcase },
-]
+const productStore = useProductStore();
+const products = computed(() => productStore.products);
+
+// A helper to map category names from the DB to the icon components
+const iconMap = {
+    'Term Life Insurance': ShieldCheck,
+    'Health Insurance': HeartPulse,
+    'Critical Illness': Stethoscope,
+    'Motor Insurance': Car,
+    '2 Wheeler Insurance': Bike,
+    'Travel Insurance': Plane,
+    'Investment Plans': HandCoins,
+    'Retirement Plans': Landmark,
+    'Child Savings Plans': Baby,
+    'Women\'s Term Plan': ShieldCheck,
+    'Return of Premium': RefreshCw,
+    'Guaranteed Returns': HandCoins,
+    'Group Health': Users,
+    'Commercial Vehicle': Building,
+    'Home Insurance': Umbrella,
+    'Business Insurance': Briefcase,
+};
+
+// Fetch products when the component is mounted
+onMounted(() => {
+    if (productStore.products.length === 0) {
+        productStore.fetchProducts();
+    }
+});
 </script>
 
 <template>
@@ -33,15 +47,19 @@ const products = [
         </p>
       </div>
 
-      <div class="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
-        <div v-for="product in products" :key="product.name" 
+      <div v-if="productStore.loading" class="text-center mt-16">
+        <p class="text-xl">Loading Products...</p>
+      </div>
+      <div v-else class="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+        <RouterLink v-for="product in products" :key="product.id"
+             :to="{ name: 'product-detail', params: { slug: product.slug } }"
              class="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
           <div class="bg-zepay-green/10 p-4 rounded-full">
-            <component :is="product.icon" class="h-8 w-8 text-zepay-green" />
+            <component :is="iconMap[product.category] || ShieldCheck" class="h-8 w-8 text-zepay-green" />
           </div>
           <h3 class="mt-4 text-md font-semibold text-gray-800">{{ product.name }}</h3>
-          <p class="mt-1 text-sm text-gray-500">{{ product.description }}</p>
-        </div>
+          <p class="mt-1 text-sm text-gray-500">{{ product.summary }}</p>
+        </RouterLink>
       </div>
     </div>
   </div>
