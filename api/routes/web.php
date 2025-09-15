@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+// This will load your Vue application
+Route::get('/{any}', function () {
     return view('welcome');
-});
+})->where('any', '.*');
